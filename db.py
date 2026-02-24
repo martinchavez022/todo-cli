@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 DB_NAME = "todo.sql"
 
@@ -13,7 +14,7 @@ def init_db(con):
         taskid INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         completed INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP 
+        created_at DATE DEFAULT CURRENT_DATE
     );
     """)
     con.commit()
@@ -51,11 +52,9 @@ def delete_task(con, taskid: int) -> int | None:
     con.commit()
     return taskid
 
+def day_tasks(con):
+    cursor = con.cursor()
+    cursor.execute("SELECT * FROM tasks WHERE created_at = date();")
+    tasks = cursor.fetchall()
+    return tasks
 
-def main():
-    exec_st(init_db)
-    print(exec_st(delete_task, taskid=13))
-    
-
-if __name__ == "__main__":
-    main()
