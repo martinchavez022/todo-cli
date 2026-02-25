@@ -14,7 +14,8 @@ def init_db(con):
         taskid INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         completed INTEGER NOT NULL DEFAULT 0,
-        created_at DATE DEFAULT CURRENT_DATE
+        created_at DATE DEFAULT CURRENT_DATE,
+        active INT DEFAULT 1
     );
     """)
     con.commit()
@@ -26,12 +27,15 @@ def add_task(con, title: str):
 
 def get_tasks(con):
     cursor = con.cursor()
-    cursor.execute("SELECT * FROM tasks")
+    cursor.execute("""
+        SELECT taskid, title, completed, created_at
+        FROM tasks WHERE active = 1
+    """)
     return cursor.fetchall()
 
 def get_status(con, taskid: int) -> int | None:
     cursor = con.cursor()
-    cursor.execute("SELECT completed FROM tasks WHERE taskid = ?;", (taskid,))
+    cursor.execute("SELECT completed FROM tasks WHERE taskid = ?", (taskid,))
     status = cursor.fetchone()
     return status[0]
 
@@ -48,13 +52,42 @@ def update_status(con, taskid: int) -> int | None:
 
 def delete_task(con, taskid: int) -> int | None:
     cursor = con.cursor()
-    cursor.execute("DELETE FROM tasks WHERE taskid = ?", (taskid,))
+    cursor.execute("UPDATE tasks SET active = 0 WHERE taskid = ?", (taskid,))
     con.commit()
     return taskid
-
+    
 def day_tasks(con):
     cursor = con.cursor()
-    cursor.execute("SELECT * FROM tasks WHERE created_at = date();")
+    cursor.execute("""
+        SELECT taskid, title, completed, created_at
+        FROM tasks WHERE created_at = date() AND active = 1;
+    """)
     tasks = cursor.fetchall()
     return tasks
 
+def show_completed_day(con):
+    cursor = con.cursor()
+    cursor.execute("""
+        SELECT taskid, title, completed, created_at
+        FROM tasks WHERE created_at = date() AND active = 1;
+    """)
+    tasks = cursor.fetchall()
+    return tasks
+
+def show_completed_day(con):
+    cursor = con.cursor()
+    cursor.execute("""
+        SELECT taskid, title, completed, created_at
+        FROM tasks WHERE completed = 1 AND created_at = date() AND active = 1;
+    """)
+    tasks = cursor.fetchall()
+    return tasks
+
+def show_left_day(con):
+    cursor = con.cursor()
+    cursor.execute("""
+        SELECT taskid, title, completed, created_at
+        FROM tasks WHERE completed = 0 AND created_at = date() AND active = 1;
+    """)
+    tasks = cursor.fetchall()
+    return tasks
