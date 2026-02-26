@@ -1,7 +1,12 @@
 [project]
-name = "to-do-console"
+name = "todo"
 version = "0.1.0"
-description = "Add your description here"
+description = "Tool to handle 'to do' app"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "rich",
+]
+
+[project.scripts]
+todo = "main:main"

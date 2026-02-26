@@ -1,15 +1,24 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
 
 import argparse
+from rich.console import Console
+from rich.table import Table
+from rich import box
 from db import init_db, exec_st, add_task, get_tasks, day_tasks, delete_task, update_status, show_completed_day, show_left_day
 
+console = Console()
+
 def show_tasks(values: tuple) -> None:
-    '''
-    This function get a tuple a print to a console in orden
-    '''
-    print("task_id  |  title  |  completed  |  date  ")
-    for i in values:
-        print(i)
+    table = Table(title="TASKS", box=box.HORIZONTALS)
+
+    table.add_column("TASKID", justify="center")
+    table.add_column("TASK", style="bold royal_blue1")
+    table.add_column("COMPLETED", justify="center")
+    table.add_column("DATE", justify="center")
+
+    for taskid, title, completed, created_at in values:
+        table.add_row(str(taskid), title, str(completed), created_at) 
+    console.print(table)
 
 def main():
 
@@ -18,7 +27,19 @@ def main():
 
         # command features to cli
     parser = argparse.ArgumentParser(
-            description = "Tool to handle to do activities.")
+            description = "Tool to handle 'to do' activities.",
+            epilog = """
+features avialable:
+    - add
+    - show
+    - show-all
+    - show-completed
+    - show-left
+    - completed
+    - delete
+    """,
+            formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     
     # the only characteristic that is neccesary
     parser.add_argument("feature", help="Indicates the action to do")
