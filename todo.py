@@ -4,9 +4,11 @@ import argparse
 from rich.console import Console
 from rich.table import Table
 from rich import box
-from db import init_db, exec_st, add_task, get_tasks, day_tasks, delete_task, update_status, show_completed_day, show_left_day
+from tasks import TaskManager
+#from db import init_db, exec_st, add_task, get_tasks, day_tasks, delete_task, update_status, show_completed_day, show_left_day
 
 console = Console()
+task_manager = TaskManager()
 
 def show_tasks(values: tuple) -> None:
     table = Table(title="TASKS", box=box.HORIZONTALS)
@@ -21,10 +23,6 @@ def show_tasks(values: tuple) -> None:
     console.print(table)
 
 def main():
-
-    # initialize todo.sql
-    exec_st(init_db)
-
         # command features to cli
     parser = argparse.ArgumentParser(
             description = "Tool to handle 'to do' activities.",
@@ -54,7 +52,8 @@ features avialable:
         case "add":
             if not args.title:
                 raise Exception("The title value is necessary to this feature")
-            exec_st(add_task, title=args.title) # insert new task
+            if not task_manager.add_task(args.title): 
+                print("Some error ocurred")
             return
 
         case "show-all":
