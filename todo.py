@@ -57,32 +57,32 @@ features avialable:
             return
 
         case "show-all":
-            show_tasks(exec_st(get_tasks))
+            show_tasks(task_manager.get_tasks())
             return
         
         case "show":
-            show_tasks(exec_st(day_tasks))
+            show_tasks(task_manager.day_tasks())
             return
 
         case "show-completed":
-            show_tasks(exec_st(show_completed_day))
+            show_tasks(task_manager.show_completed_day())
             return
 
         case "show-left":
-            show_tasks(exec_st(show_left_day))
+            show_tasks(task_manager.show_left_day())
             return
 
         case "delete":
             if not args.taskid:
                 raise Exception("The taskid value is necessary to this feature")
-            if exec_st(delete_task, taskid=args.taskid) != None:
-                return    
-            raise Exception("The task was not deleted")
+            if not task_manager.delete_task(args.taskid):
+                raise Exception("The task was not deleted")
+            return
         
         case "completed":
             if not args.taskid:
                 raise Exception("The taskid value is neccessary to this feature")
-            if exec_st(update_status, taskid=args.taskid) != None:
+            if task_manager.update_status(args.taskid):
                 return
             raise Exception("The task was not mark as completed")
 

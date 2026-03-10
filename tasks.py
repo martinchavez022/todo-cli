@@ -31,7 +31,7 @@ class TaskManager(DatabaseManager):
             return True
         return False
 
-    def get_tasks(self) -> bool:
+    def get_tasks(self): 
         """
         Used to get all tasks that are active
         """
@@ -39,65 +39,56 @@ class TaskManager(DatabaseManager):
             SELECT taskid, title, completed, created_at
             FROM tasks WHERE active = 1
         """
-        if self.query(sql_get_task).len() > 0:
-            return True
-        return False
-
-    def get_status(con, taskid: int) -> int | None:
-        cursor = con.cursor()
-        cursor.execute("SELECT completed FROM tasks WHERE taskid = ?", (taskid,))
-        status = cursor.fetchone()
-        return status[0]
-
-    def update_status(con, taskid: int) -> int | None:
-        status = exec_st(get_status, taskid=taskid)
-        if status == None: 
+        return self.query(sql_get_task)
+        
+    def get_status(self, taskid: int) -> int | None:
+        """
+        Function used to internal get the status of a task
+        """
+        sql_get_status = "SELECT completed FROM tasks WHERE taskid = ?"
+        status = self.query(sql_get_status, (taskid,))
+        if len(status) < 1 :
             return None
-        cursor = con.cursor()
+        return status[0][0]
+
+    def update_status(self, taskid: int) -> bool:
+        """
+        Function used to update the status of a task
+        """
+        status = self.get_status(taskid) 
+        if status == None: 
+            return False
         if status == 1: status = 0
         else: status = 1
-        cursor.execute("UPDATE tasks SET completed = ? WHERE taskid = ?", (status, taskid))
-        con.commit()
-        return status
+        sql_update_status = "UPDATE tasks SET completed = ? WHERE taskid = ?"
+        self.query(sql_update_status, (status, taskid))
+        return True
 
-    def delete_task(con, taskid: int) -> int | None:
-        cursor = con.cursor()
-        cursor.execute("UPDATE tasks SET active = 0 WHERE taskid = ?", (taskid,))
-        con.commit()
-        return taskid
+    def delete_task(self, taskid: int) -> bool:
+        sql_delete_task = "UPDATE tasks SET active = 0 WHERE taskid = ?" 
+        self.query(sql_delete_task, (taskid,))
+        return True
         
-    def day_tasks(con):
-        cursor = con.cursor()
-        cursor.execute("""
+    def day_tasks(self):
+        sql_day_tasks = """
             SELECT taskid, title, completed, created_at
             FROM tasks WHERE created_at = ? AND active = 1;
-        """, (date,))
-        tasks = cursor.fetchall()
-        return tasks
+        """
+        tasks = self.query(sql_day_tasks, (date,))
+        return tasks 
 
-    def show_completed_day(con):
-        cursor = con.cursor()
-        cursor.execute("""
-            SELECT taskid, title, completed, created_at
-            FROM tasks WHERE created_at = ? AND active = 1;
-        """, (date,))
-        tasks = cursor.fetchall()
-        return tasks
-
-    def show_completed_day(con):
-        cursor = con.cursor()
-        cursor.execute("""
+    def show_completed_day(self):
+        sql_completed_day = """
             SELECT taskid, title, completed, created_at
             FROM tasks WHERE completed = 1 AND created_at = ? AND active = 1;
-        """, (date,))
-        tasks = cursor.fetchall()
+        """ 
+        tasks = self.query(sql_completed_day, (date,))
         return tasks
 
-    def show_left_day(con):
-        cursor = con.cursor()
-        cursor.execute("""
+    def show_left_day(self):
+        sql_left_day = """
             SELECT taskid, title, completed, created_at
             FROM tasks WHERE completed = 0 AND created_at = ? AND active = 1;
-        """, (date,))
-        tasks = cursor.fetchall()
+        """ 
+        tasks = self.query(sql_left_day, (date,))
         return tasks
