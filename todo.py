@@ -2,9 +2,11 @@
 
 import argparse
 from tasks import TaskManager
-from pretty_cly import table_data
+from habits import HabitManager
+from pretty_cly import table_data_tasks, table_data_habits
 
 task_manager = TaskManager()
+habit_manager = HabitManager()
 
 def main():
     # Main arg parser 
@@ -38,14 +40,20 @@ def main():
     show_all = task_sub.add_parser("show-all", help="Show all tasks")
 
     # habits module -------------------------------------------------------
-
+    habit_parser = subparsers.add_parser("habits", help="Handle habits")
+    habit_sub = habit_parser.add_subparsers(dest="action")
+    # show habits
+    show_habits = habit_sub.add_parser("show", help="List the habits registered")
+    # add habits
+    add_habit = habit_sub.add_parser("add", help="Add a habit")
+    add_habit.add_argument("title", help="Tittle of the habit")
 
     args = parser.parse_args()
 
     if args.module == "tasks":
         match(args.action):
             case "show":
-                table_data(task_manager.day_tasks())
+                table_data_tasks(task_manager.day_tasks())
             case "add":
                 task_manager.add_task(args.tittle)
             case "delete":
@@ -53,14 +61,19 @@ def main():
             case "complete":
                 task_manager.update_status(args.taskid)
             case "show-complete":
-                table_data(task_manager.show_completed_day())
+                table_data_tasks(task_manager.show_completed_day())
             case "show-left":
-                table_data(task_manager.show_left_day())
+                table_data_tasks(task_manager.show_left_day())
             case "show-all":
-                table_data(task_manager.get_tasks())
+                table_data_tasks(task_manager.get_tasks())
             case _:
                 print("asd")
-    else: 
+    elif args.module == "habits":
+        match(args.action):
+            case "show":
+                table_data_habits(habit_manager.get_habits())
+            case "add":
+                habit_manager.add_habit(args.title)
         return
 
 if __name__ == '__main__':
