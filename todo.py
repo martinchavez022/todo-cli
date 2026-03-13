@@ -1,93 +1,67 @@
 #!/usr/bin/env -S uv run --script
 
 import argparse
-from rich.console import Console
-from rich.table import Table
-from rich import box
 from tasks import TaskManager
-#from db import init_db, exec_st, add_task, get_tasks, day_tasks, delete_task, update_status, show_completed_day, show_left_day
+from pretty_cly import table_data
 
-console = Console()
 task_manager = TaskManager()
 
-def show_tasks(values: tuple) -> None:
-    table = Table(title="TASKS", box=box.HORIZONTALS)
-
-    table.add_column("TASKID", justify="center")
-    table.add_column("TASK", style="bold royal_blue1")
-    table.add_column("COMPLETED", justify="center")
-    table.add_column("DATE", justify="center")
-
-    for taskid, title, completed, created_at in values:
-        table.add_row(str(taskid), title, str(completed), created_at) 
-    console.print(table)
-
 def main():
-        # command features to cli
+    # Main arg parser 
     parser = argparse.ArgumentParser(
-            description = "Tool to handle 'to do' activities.",
-            epilog = """
-features avialable:
-    - add
-    - show
-    - show-all
-    - show-completed
-    - show-left
-    - completed
-    - delete
-    """,
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            description = "Tool to handle tasks and habits.",
+            prog="todo"
     )
     
-    # the only characteristic that is neccesary
-    parser.add_argument("feature", help="Indicates the action to do")
-    
-    # values to do the feature
-    parser.add_argument("--title", help="The title to new task")
-    parser.add_argument("--taskid", help="The task id of the task")
+    # handle tasks vs habits
+    subparsers = parser.add_subparsers(dest="module", help="choose a module")
+
+    # task module --------------------------------------------------------
+    task_parser = subparsers.add_parser("tasks", help="Manage daily tasks")
+    task_sub = task_parser.add_subparsers(dest="action")
+    # show tasks 
+    show_tasks = task_sub.add_parser("show", help="List of the tasks")
+    # add task
+    add_task = task_sub.add_parser("add", help="Add a new task")
+    add_task.add_argument("tittle", help="Title or description of the task")
+    # remove task
+    delete_task = task_sub.add_parser("delete", help="Remove a task")
+    delete_task.add_argument("taskid", type=int, help="The id of the task to remove")
+    # complete
+    comple_task = task_sub.add_parser("complete", help="Mark as complete a task")
+    comple_task.add_argument("taskid", type=int, help="The id of the task to complete")
+    # show-complete
+    show_complete = task_sub.add_parser("show-complete", help="Show the completed tasks of the day")
+    # show-left
+    show_left = task_sub.add_parser("show-left", help="Show left tasks of the day")
+    # show-all
+    show_all = task_sub.add_parser("show-all", help="Show all tasks")
+
+    # habits module -------------------------------------------------------
+
 
     args = parser.parse_args()
 
-    match(args.feature):
-        case "add":
-            if not args.title:
-                raise Exception("The title value is necessary to this feature")
-            if not task_manager.add_task(args.title): 
-                print("Some error ocurred")
-            return
-
-        case "show-all":
-            show_tasks(task_manager.get_tasks())
-            return
-        
-        case "show":
-            show_tasks(task_manager.day_tasks())
-            return
-
-        case "show-completed":
-            show_tasks(task_manager.show_completed_day())
-            return
-
-        case "show-left":
-            show_tasks(task_manager.show_left_day())
-            return
-
-        case "delete":
-            if not args.taskid:
-                raise Exception("The taskid value is necessary to this feature")
-            if not task_manager.delete_task(args.taskid):
-                raise Exception("The task was not deleted")
-            return
-        
-        case "completed":
-            if not args.taskid:
-                raise Exception("The taskid value is neccessary to this feature")
-            if task_manager.update_status(args.taskid):
-                return
-            raise Exception("The task was not mark as completed")
-
-        case _:
-            raise Exception("Invalid command.")
+    if args.module == "tasks":
+        match(args.action):
+            case "show":
+                table_data(task_manager.day_tasks())
+            case "add":
+                task_manager.add_task(args.tittle)
+            case "delete":
+                task_manager.delete_task(args.taskid)
+            case "complete":
+                task_manager.update_status(args.taskid)
+            case "show-complete":
+                table_data(task_manager.show_completed_day())
+            case "show-left":
+                table_data(task_manager.show_left_day())
+            case "show-all":
+                table_data(task_manager.get_tasks())
+            case _:
+                print("asd")
+    else: 
+        return
 
 if __name__ == '__main__':
     main()
